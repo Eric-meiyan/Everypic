@@ -30,6 +30,10 @@ class ConfigManager:
             'db_path': 'everypic.db'
         }
         
+        self.config['General'] = {
+            'language': 'zh_CN'  # 默认使用中文
+        }
+        
         self.save_config()
 
     def save_config(self):
@@ -55,3 +59,12 @@ class ConfigManager:
     def get_db_path(self) -> str:
         """获取数据库路径"""
         return self.config.get('Database', 'db_path', fallback='everypic.db') 
+
+    def get_language(self) -> str:
+        """获取当前语言设置"""
+        return self.config.get('General', 'language', fallback='zh_CN')
+
+    def set_language(self, language: str):
+        """设置语言"""
+        self.config['General']['language'] = language
+        self.save_config() 
