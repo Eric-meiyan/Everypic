@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QMenu, QMenuBar
 from PyQt6.QtGui import QAction
+from .settings_dialog import SettingsDialog
 
 def create_menu_bar(window, menubar):
     # 文件菜单
@@ -7,6 +8,7 @@ def create_menu_bar(window, menubar):
     
     new_action = QAction("新建", window)
     exit_action = QAction("退出", window)
+    exit_action.triggered.connect(window.close)
     file_menu.addAction(new_action)
     file_menu.addAction(exit_action)
     
@@ -23,7 +25,8 @@ def create_menu_bar(window, menubar):
     # 工具菜单
     tools_menu = menubar.addMenu("工具(&T)")
     
-    options_action = QAction("选项", window)
+    options_action = QAction("设置", window)
+    options_action.triggered.connect(lambda: show_settings_dialog(window))
     tools_menu.addAction(options_action)
     
     # 帮助菜单
@@ -32,4 +35,10 @@ def create_menu_bar(window, menubar):
     help_action = QAction("帮助", window)
     about_action = QAction("关于", window)
     help_menu.addAction(help_action)
-    help_menu.addAction(about_action) 
+    help_menu.addAction(about_action)
+
+def show_settings_dialog(parent):
+    dialog = SettingsDialog(parent)
+    if dialog.exec() == SettingsDialog.Accepted:
+        # 设置已经在对话框的 accept() 方法中保存了
+        pass 
