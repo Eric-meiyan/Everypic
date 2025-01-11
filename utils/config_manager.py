@@ -68,3 +68,8 @@ class ConfigManager:
         """设置语言"""
         self.config['General']['language'] = language
         self.save_config() 
+
+    def set_supported_formats(self, formats: str):
+        """设置支持的文件格式"""
+        self.config['FileTypes']['supported_formats'] = formats
+        self.save_config() 

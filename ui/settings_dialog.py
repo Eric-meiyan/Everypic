@@ -51,6 +51,16 @@ class SettingsDialog(QDialog):
         
         layout.addWidget(scan_group)
 
+        # 文件类型设置
+        filetype_group = QGroupBox(get_text('file_types', self.current_language))
+        filetype_layout = QVBoxLayout(filetype_group)
+        
+        self.filetype_edit = QLineEdit()
+        self.filetype_edit.setPlaceholderText(".jpg;.jpeg;.png;.gif;.bmp")
+        filetype_layout.addWidget(self.filetype_edit)
+        
+        layout.addWidget(filetype_group)
+
         # 确定和取消按钮
         buttons_layout = QHBoxLayout()
         ok_button = QPushButton(get_text('ok', self.current_language))
@@ -76,6 +86,10 @@ class SettingsDialog(QDialog):
             if directory:
                 self.directory_list.addItem(directory)
 
+        # 加载文件类型设置
+        formats = self.config_manager.get_supported_formats()
+        self.filetype_edit.setText(';'.join(formats))
+
     def save_settings(self):
         """保存设置到配置文件"""
         # 保存语言设置
@@ -87,6 +101,10 @@ class SettingsDialog(QDialog):
         for i in range(self.directory_list.count()):
             directories.append(self.directory_list.item(i).text())
         self.config_manager.set_scan_directories(directories)
+
+        # 保存文件类型设置
+        formats = self.filetype_edit.text().strip()
+        self.config_manager.set_supported_formats(formats)
 
     def add_directory(self):
         directory = QFileDialog.getExistingDirectory(

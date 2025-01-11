@@ -1,0 +1,16 @@
+# Testing
+*.test.*
+*.spec.*
+# Temporary files
+*.tmp
+*.temp
+*.bak
+# Large media files
+*.mp4
+*.mov
+*.wav
+*.mp3
+*.pdf
+*.zip
+*.tar.gz
+# Generated files public/sitemap*.xml public/robots.txt

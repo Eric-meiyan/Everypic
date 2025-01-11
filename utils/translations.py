@@ -18,7 +18,8 @@ TRANSLATIONS = {
         'help_menu': '帮助(&H)',
         'help': '帮助',
         'about': '关于',
-        'select_directory': '选择扫描目录'
+        'select_directory': '选择扫描目录',
+        'file_types': '支持的文件类型：'
     },
     'en_US': {
         'settings': 'Settings',
@@ -39,7 +40,8 @@ TRANSLATIONS = {
         'help_menu': '&Help',
         'help': 'Help',
         'about': 'About',
-        'select_directory': 'Select Directory'
+        'select_directory': 'Select Directory',
+        'file_types': 'Supported File Types:'
     }
 }
 

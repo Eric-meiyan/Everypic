@@ -3,11 +3,15 @@ import hashlib
 from datetime import datetime
 from PIL import Image
 from database.db_manager import DatabaseManager
+from ImageToText import ImageCaptioner
+
+
 
 class ImageScanner:
     def __init__(self):
         self.db_manager = DatabaseManager()
         self.supported_formats = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+        self.image_captioner = ImageCaptioner()
     
     def get_file_md5(self, filepath):
         """计算文件的MD5值"""
@@ -18,9 +22,8 @@ class ImageScanner:
         return md5_hash.hexdigest()
     
     def get_image_description(self, image_path):
-        """获取图片描述（此处可以后续集成AI模型）"""
-        # TODO: 集成AI模型进行图片描述
-        return "图片描述待完善"
+        """获取图片描述"""
+        return self.image_captioner.caption_image(image_path)
     
     def scan_directory(self, directory):
         """扫描指定目录下的所有图片"""
@@ -56,14 +59,7 @@ class ImageScanner:
         # 获取常见的图片目录
         picture_dirs = []
         
-        # Windows系统的图片文件夹
-        user_profile = os.environ.get('USERPROFILE')
-        if user_profile:
-            picture_dirs.extend([
-                os.path.join(user_profile, 'Pictures'),
-                os.path.join(user_profile, 'Downloads'),
-                os.path.join(user_profile, 'Desktop')
-            ])
+     
         
         # 扫描所有配置的目录
         for directory in picture_dirs:
