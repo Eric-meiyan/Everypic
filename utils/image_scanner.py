@@ -9,7 +9,7 @@ from .ImageToText import ImageCaptioner
 class ImageScanner:
     def __init__(self):
         self.db_manager = DatabaseManager()
-        self.supported_formats = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+        self.supported_formats = ConfigManager().get_supported_formats()
         self.image_captioner = ImageCaptioner()
     
     def get_file_md5(self, filepath):
