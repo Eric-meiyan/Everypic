@@ -3,8 +3,7 @@ import hashlib
 from datetime import datetime
 from PIL import Image
 from database.db_manager import DatabaseManager
-from ImageToText import ImageCaptioner
-
+from .ImageToText import ImageCaptioner
 
 
 class ImageScanner:
@@ -65,3 +64,29 @@ class ImageScanner:
         for directory in picture_dirs:
             if os.path.exists(directory):
                 self.scan_directory(directory) 
+    
+    def process_single_image(self, file_path):
+        """处理单个图片文件"""
+        try:
+            # 获取文件信息
+            file_stats = os.stat(file_path)
+            created_time = datetime.fromtimestamp(file_stats.st_ctime)
+            modified_time = datetime.fromtimestamp(file_stats.st_mtime)
+            
+            # 构建图片数据
+            image_data = (
+                os.path.basename(file_path),  # filename
+                self.get_file_md5(file_path),  # md5_hash
+                file_path,  # file_path
+                self.get_image_description(file_path),  # description
+                file_stats.st_size,  # file_size
+                created_time.strftime('%Y-%m-%d %H:%M:%S'),  # created_time
+                modified_time.strftime('%Y-%m-%d %H:%M:%S')  # modified_time
+            )
+            
+            # 添加到数据库
+            self.db_manager.add_image(image_data)
+            
+        except Exception as e:
+            print(f"处理文件 {file_path} 时出错: {str(e)}")
+            raise 

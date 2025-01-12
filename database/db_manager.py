@@ -54,3 +54,13 @@ class DatabaseManager:
         results = cursor.fetchall()
         conn.close()
         return results 
+    
+    def delete_image_by_path(self, file_path):
+        """根据文件路径删除图片记录"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM images WHERE file_path = ?', (file_path,))
+        
+        conn.commit()
+        conn.close() 

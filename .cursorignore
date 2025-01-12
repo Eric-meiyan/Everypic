@@ -13,4 +13,5 @@
 *.pdf
 *.zip
 *.tar.gz
+*.db
 # Generated files public/sitemap*.xml public/robots.txt
