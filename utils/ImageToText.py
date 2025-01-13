@@ -2,7 +2,7 @@ import requests
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 
-class ImageCaptioner:
+class ImageToText:
     def __init__(self, model_name="Salesforce/blip-image-captioning-large"):
         self.processor = BlipProcessor.from_pretrained(model_name)
         self.model = BlipForConditionalGeneration.from_pretrained(model_name)
@@ -33,6 +33,6 @@ class ImageCaptioner:
         return self.processor.decode(out[0], skip_special_tokens=True)
 
 # Example usage:
-# captioner = ImageCaptioner()
+# captioner = ImageToText()
 # caption = captioner.caption_image("path/to/image.jpg")
 # caption_with_prompt = captioner.caption_image("path/to/image.jpg", "A photo of:")

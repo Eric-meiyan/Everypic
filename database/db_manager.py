@@ -10,24 +10,27 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # 创建图片信息表
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS images (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                filename TEXT NOT NULL,
-                md5_hash TEXT NOT NULL,
-                file_path TEXT NOT NULL,
-                description TEXT,
-                file_size INTEGER,
-                created_time TEXT,
-                modified_time TEXT,
-                reserved1 TEXT,
-                reserved2 TEXT
-            )
-        ''')
+        # 检查图片信息表是否已存在
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='images';")
+        if cursor.fetchone() is None:
+            # 如果表不存在，则创建表
+            cursor.execute('''
+                CREATE TABLE images (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    filename TEXT NOT NULL,
+                    md5_hash TEXT NOT NULL,
+                    file_path TEXT NOT NULL,
+                    description TEXT,
+                    file_size INTEGER,
+                    created_time TEXT,
+                    modified_time TEXT,
+                    reserved1 TEXT,
+                    reserved2 TEXT
+                )
+            ''')
+            conn.commit()
+        conn.close()        
         
-        conn.commit()
-        conn.close()
     
     def add_image(self, image_data):
         conn = sqlite3.connect(self.db_path)

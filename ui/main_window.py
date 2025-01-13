@@ -31,8 +31,7 @@ class MainWindow(QMainWindow):
         # 创建菜单栏
         self.create_menus()
         
-        # 初始化数据库管理器
-        self.db_manager = DatabaseManager()
+
         
     def create_menus(self):
         menubar = self.menuBar()

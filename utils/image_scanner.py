@@ -3,14 +3,15 @@ import hashlib
 from datetime import datetime
 from PIL import Image
 from database.db_manager import DatabaseManager
-from .ImageToText import ImageCaptioner
+from .ImageToText import ImageToText
+from .config_manager import ConfigManager
 
 
 class ImageScanner:
     def __init__(self):
         self.db_manager = DatabaseManager()
         self.supported_formats = ConfigManager().get_supported_formats()
-        self.image_captioner = ImageCaptioner()
+        self.image_to_text = ImageToText()
     
     def get_file_md5(self, filepath):
         """计算文件的MD5值"""
@@ -22,7 +23,7 @@ class ImageScanner:
     
     def get_image_description(self, image_path):
         """获取图片描述"""
-        return self.image_captioner.caption_image(image_path)
+        return self.image_to_text.caption_image(image_path)
     
     def scan_directory(self, directory):
         """扫描指定目录下的所有图片"""
@@ -56,9 +57,7 @@ class ImageScanner:
     def start_scan(self):
         """开始扫描系统中的图片"""
         # 获取常见的图片目录
-        picture_dirs = []
-        
-     
+        picture_dirs = []           
         
         # 扫描所有配置的目录
         for directory in picture_dirs:
