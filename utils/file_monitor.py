@@ -2,7 +2,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import os
-from database.db_manager import DatabaseManager
+from database.transaction_manager import TransactionManager
 from utils.image_scanner import ImageScanner
 from utils.config_manager import ConfigManager
 from utils.logger import Logger
@@ -10,7 +10,7 @@ from utils.logger import Logger
 class ImageFileHandler(FileSystemEventHandler):
     def __init__(self):
         super().__init__()
-        self.db_manager = DatabaseManager()
+        self.db = TransactionManager()
         self.image_scanner = ImageScanner()
         self.config_manager = ConfigManager()
         self.supported_formats = self.config_manager.get_supported_formats()
@@ -37,8 +37,9 @@ class ImageFileHandler(FileSystemEventHandler):
             return
         if self.is_valid_image(event.src_path):
             try:
-                self.db_manager.delete_image_by_path(event.src_path)
-                self.image_scanner.process_single_image(event.src_path)
+                with self.db.transaction():
+                    self.db.delete_image(event.src_path)
+                    self.image_scanner.process_single_image(event.src_path)
                 self.logger.info(f"更新图片: {event.src_path}")
             except Exception as e:
                 self.logger.error(f"处理修改图片时出错: {e}")
@@ -49,11 +50,11 @@ class ImageFileHandler(FileSystemEventHandler):
             return
         if self.is_valid_image(event.src_path):
             try:
-                # 从数据库中删除记录
-                self.db_manager.delete_image_by_path(event.src_path)
-                print(f"删除图片: {event.src_path}")
+                with self.db.transaction():
+                    self.db.delete_image(event.src_path)
+                self.logger.info(f"删除图片: {event.src_path}")
             except Exception as e:
-                print(f"处理删除图片时出错: {e}")
+                self.logger.error(f"处理删除图片时出错: {e}")
 
     def on_moved(self, event):
         """处理移动或重命名的文件"""
@@ -61,12 +62,12 @@ class ImageFileHandler(FileSystemEventHandler):
             return
         if self.is_valid_image(event.dest_path):
             try:
-                # 处理移动/重命名
-                self.db_manager.delete_image_by_path(event.src_path)
-                self.image_scanner.process_single_image(event.dest_path)
-                print(f"移动/重命名图片: {event.src_path} -> {event.dest_path}")
+                with self.db.transaction():
+                    self.db.delete_image(event.src_path)
+                    self.image_scanner.process_single_image(event.dest_path)
+                self.logger.info(f"移动/重命名图片: {event.src_path} -> {event.dest_path}")
             except Exception as e:
-                print(f"处理移动/重命名图片时出错: {e}")
+                self.logger.error(f"处理移动/重命名图片时出错: {e}")
 
 class FileMonitor:
     def __init__(self):
@@ -97,7 +98,7 @@ class FileMonitor:
             self.observer.stop()
             self.observer.join()
             self.watching = False
-            print("停止所有目录监控")
+            self.logger.info("停止所有目录监控")
 
     def restart_monitoring(self):
         """重启监控（用于配置更改后）"""

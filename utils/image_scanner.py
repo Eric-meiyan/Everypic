@@ -2,16 +2,19 @@ import os
 import hashlib
 from datetime import datetime
 from PIL import Image
-from database.db_manager import DatabaseManager
+from database.transaction_manager import TransactionManager
 from .ImageToText import ImageToText
 from .config_manager import ConfigManager
+from utils.logger import Logger
 
 
 class ImageScanner:
     def __init__(self):
-        self.db_manager = DatabaseManager()
+        self.db = TransactionManager()  # 使用事务管理器
         self.supported_formats = ConfigManager().get_supported_formats()
         self.image_to_text = ImageToText()
+        self.image_to_text.load_model()
+        self.logger = Logger()
     
     def get_file_md5(self, filepath):
         """计算文件的MD5值"""
@@ -32,32 +35,14 @@ class ImageScanner:
                 if any(file.lower().endswith(fmt) for fmt in self.supported_formats):
                     file_path = os.path.join(root, file)
                     try:
-                        # 获取文件信息
-                        file_stats = os.stat(file_path)
-                        created_time = datetime.fromtimestamp(file_stats.st_ctime)
-                        modified_time = datetime.fromtimestamp(file_stats.st_mtime)
-                        
-                        # 构建图片数据
-                        image_data = (
-                            file,  # filename
-                            self.get_file_md5(file_path),  # md5_hash
-                            file_path,  # file_path
-                            self.get_image_description(file_path),  # description
-                            file_stats.st_size,  # file_size
-                            created_time.strftime('%Y-%m-%d %H:%M:%S'),  # created_time
-                            modified_time.strftime('%Y-%m-%d %H:%M:%S')  # modified_time
-                        )
-                        
-                        # 添加到数据库
-                        self.db_manager.add_image(image_data)
-                        
+                        self.process_single_image(file_path)
                     except Exception as e:
-                        print(f"处理文件 {file_path} 时出错: {str(e)}")
+                        self.logger.error(f"处理文件 {file_path} 时出错: {str(e)}")
     
     def start_scan(self):
         """开始扫描系统中的图片"""
-        # 获取常见的图片目录
-        picture_dirs = []           
+        # 从配置管理器获取图片目录
+        picture_dirs = ConfigManager().get_scan_directories()        
         
         # 扫描所有配置的目录
         for directory in picture_dirs:
@@ -69,23 +54,28 @@ class ImageScanner:
         try:
             # 获取文件信息
             file_stats = os.stat(file_path)
+            file_name = os.path.basename(file_path)
             created_time = datetime.fromtimestamp(file_stats.st_ctime)
             modified_time = datetime.fromtimestamp(file_stats.st_mtime)
             
-            # 构建图片数据
-            image_data = (
-                os.path.basename(file_path),  # filename
-                self.get_file_md5(file_path),  # md5_hash
-                file_path,  # file_path
-                self.get_image_description(file_path),  # description
-                file_stats.st_size,  # file_size
-                created_time.strftime('%Y-%m-%d %H:%M:%S'),  # created_time
-                modified_time.strftime('%Y-%m-%d %H:%M:%S')  # modified_time
-            )
+            # 生成图片描述
+            description = self.get_image_description(file_path)
             
-            # 添加到数据库
-            self.db_manager.add_image(image_data)
+            # 构建图片数据
+            image_data = {
+                'file_path': file_path,
+                'file_name': file_name,
+                'file_size': file_stats.st_size,
+                'md5': self.get_file_md5(file_path),
+                'created_time': created_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'modified_time': modified_time.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            # 使用事务添加图片信息到数据库
+            with self.db.transaction():
+                image_id = self.db.add_image(image_data, description)
+                self.logger.info(f"成功处理图片: {file_path}")
             
         except Exception as e:
-            print(f"处理文件 {file_path} 时出错: {str(e)}")
+            self.logger.error(f"处理文件 {file_path} 时出错: {str(e)}")
             raise 

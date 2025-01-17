@@ -1,6 +1,10 @@
 from PyQt6.QtWidgets import QMenu, QMenuBar
 from PyQt6.QtGui import QAction
 from .settings_dialog import SettingsDialog
+from utils.scan_thread import ScanThread
+from utils.image_scanner import ImageScanner
+from utils.logger import Logger
+from database.transaction_manager import TransactionManager
 
 def create_menu_bar(window, menubar):
     # 文件菜单
@@ -27,7 +31,11 @@ def create_menu_bar(window, menubar):
     
     options_action = QAction("设置", window)
     options_action.triggered.connect(lambda: show_settings_dialog(window))
+    scan_action = QAction("扫描", window)
+    scan_action.triggered.connect(lambda: start_scan(window))
+    
     tools_menu.addAction(options_action)
+    tools_menu.addAction(scan_action)
     
     # 帮助菜单
     help_menu = menubar.addMenu("帮助(&H)")
@@ -41,4 +49,47 @@ def show_settings_dialog(parent):
     dialog = SettingsDialog(parent)
     if dialog.exec() == SettingsDialog.Accepted:
         # 设置已经在对话框的 accept() 方法中保存了
-        pass 
+        pass
+
+def start_scan(parent):
+    # """开始扫描图片"""
+    # logger = Logger()
+    # scanner = ImageScanner()
+    # try:
+    #     scanner.start_scan()
+    #     logger.info("图片扫描完成")
+    #     scanner.scan_completed.emit()
+    # except Exception as e:
+    #     error_msg = f"扫描过程出错: {str(e)}"
+    #     logger.error(error_msg)
+
+
+    # logger = Logger()
+    # try:
+    #     # 创建并启动扫描线程
+    #     scan_thread = ScanThread()
+    #     scan_thread.progress_updated.connect(lambda msg: logger.info(msg))
+    #     scan_thread.scan_completed.connect(lambda: logger.info("扫描完成"))
+    #     scan_thread.start()
+    #     logger.info("开始扫描图片...")
+    # except Exception as e:
+    #     logger.error(f"启动扫描失败: {str(e)}") 
+
+    transaction_manager = TransactionManager()
+    try:
+        results = transaction_manager.search_similar_images("小朋友")
+        print("查询结果:")
+        # 先打印完整的结果对象，看看实际的数据结构
+        print("原始结果:", results)
+        for result in results:
+            # 打印每个结果的所有可用键
+            print("可用的键:", result.keys())
+            # 安全地访问数据
+            print(f"图片ID: {result.get('id', 'N/A')}")
+            print(f"文件路径: {result.get('file_path', 'N/A')}")
+            # 使用 get 方法避免 KeyError
+            print(f"描述: {result.get('description', 'N/A')}")
+    except Exception as e:
+        print(f"查询失败: {str(e)}")
+        import traceback
+        traceback.print_exc()

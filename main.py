@@ -2,10 +2,10 @@ import sys
 import os
 from PyQt6.QtWidgets import QApplication
 from ui.main_window import MainWindow
-from utils.image_scanner import ImageScanner
+# from utils.image_scanner import ImageScanner
 from utils.file_monitor import FileMonitor
 from utils.config_manager import ConfigManager
-from database.db_manager import DatabaseManager
+from database.transaction_manager import TransactionManager
 from utils.scan_thread import ScanThread
 
 def is_debugging():
@@ -15,9 +15,7 @@ def is_debugging():
     if gettrace is not None and gettrace():
         return True
     
-    # # 方法2：检查环境变量
-    # if os.getenv("DEBUG", "false").lower() == "true":
-    #     return True
+
         
     return False
 
@@ -43,6 +41,8 @@ def main():
     # 显示主窗口
     window.show()
 
+    # file_monitor = FileMonitor()
+
     # 检查是否首次运行
     is_first_run = not os.path.exists("settings.ini") 
     # 判断是否为调试模式
@@ -54,19 +54,19 @@ def main():
 
     
 
-    if is_first_run:
-        # 首次运行初始化        
-        db_manager = DatabaseManager()    # 会创建数据库结构
+    # if is_first_run:
+    #     # 首次运行初始化        
+    #     db_manager = DatabaseManager()    # 会创建数据库结构
         
-        # 创建并启动扫描线程        
-        scan_thread = ScanThread()
-        scan_thread.progress_updated.connect(lambda msg: print(msg))  # 可以连接到状态栏显示
-        scan_thread.start()
-    else:
-        # 非首次运行，确保数据库已初始化，启动文件监控
-        db_manager = DatabaseManager()    # 确保数据库已初始化        
-        file_monitor = FileMonitor()
-        file_monitor.start_monitoring()
+    #     # 创建并启动扫描线程        
+    #     scan_thread = ScanThread()
+    #     # scan_thread.progress_updated.connect(lambda msg: print(msg))  # 可以连接到状态栏显示
+    #     scan_thread.start()
+    # else:
+    #     # 非首次运行，确保数据库已初始化，启动文件监控
+    #     db_manager = DatabaseManager()    # 确保数据库已初始化        
+        
+    #     file_monitor.start_monitoring()
 
 
     
@@ -74,7 +74,11 @@ def main():
     try:
         sys.exit(app.exec())
     finally:
-        file_monitor.stop_monitoring()
+        print("应用程序已关闭")
+        # file_monitor.stop_monitoring()
+
+
 
 if __name__ == "__main__":
     main() 
+    # onetest()

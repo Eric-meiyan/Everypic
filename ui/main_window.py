@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout,
                            QLineEdit, QListWidget, QMenuBar)
 from PyQt6.QtCore import Qt
 from ui.menu_bar import create_menu_bar
-from database.db_manager import DatabaseManager
+from database.transaction_manager import TransactionManager
 
 class MainWindow(QMainWindow):
     def __init__(self):

@@ -4,8 +4,17 @@ from transformers import BlipProcessor, BlipForConditionalGeneration
 
 class ImageToText:
     def __init__(self, model_name="Salesforce/blip-image-captioning-large"):
-        self.processor = BlipProcessor.from_pretrained(model_name)
-        self.model = BlipForConditionalGeneration.from_pretrained(model_name)
+        self.model_name = model_name
+        self.processor = None
+        self.model = None
+    
+    def load_model(self):
+        """
+        Load the BLIP model and processor
+        """
+        if self.processor is None or self.model is None:
+            self.processor = BlipProcessor.from_pretrained(self.model_name)
+            self.model = BlipForConditionalGeneration.from_pretrained(self.model_name)
     
     def caption_image(self, image_path, conditional_text=None):
         """
@@ -15,7 +24,13 @@ class ImageToText:
             conditional_text: Optional text prompt for conditional captioning
         Returns:
             str: Generated caption
+        Raises:
+            RuntimeError: If model is not loaded
         """
+        # Check if model is loaded
+        if self.processor is None or self.model is None:
+            raise RuntimeError("Model not loaded. Please call load_model() first.")
+        
         # Load image
         if image_path.startswith(('http://', 'https://')):
             raw_image = Image.open(requests.get(image_path, stream=True).raw).convert('RGB')
