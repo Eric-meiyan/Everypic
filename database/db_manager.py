@@ -1,6 +1,7 @@
 import sqlite3
 import os
 from utils.logger import Logger
+from typing import List
 
 class DatabaseManager:
     _instance = None
@@ -75,26 +76,30 @@ class DatabaseManager:
             if not in_transaction:
                 self.begin_transaction()
             
-            # 先检查是否存在
             cursor = self.conn.cursor()
-            cursor.execute('SELECT id FROM images WHERE file_path = ?', (image_data['file_path'],))
+            cursor.execute('''
+                SELECT id, file_size, modified_time 
+                FROM images WHERE file_path = ?
+            ''', (image_data['file_path'],))
             existing = cursor.fetchone()
             
             if existing:
-                # 更新
-                cursor.execute('''
-                    UPDATE images SET
-                        file_name = ?, file_size = ?, md5 = ?,
-                        created_time = ?, modified_time = ?
-                    WHERE id = ?
-                ''', (
-                    image_data['file_name'],
-                    image_data['file_size'],
-                    image_data['md5'],
-                    image_data['created_time'],
-                    image_data['modified_time'],
-                    existing[0]
-                ))
+                # 只有当文件大小或修改时间发生变化时才更新
+                if (existing[1] != image_data['file_size'] or 
+                    existing[2] != image_data['modified_time']):
+                    cursor.execute('''
+                        UPDATE images SET
+                            file_name = ?, file_size = ?, md5 = ?,
+                            created_time = ?, modified_time = ?
+                        WHERE id = ?
+                    ''', (
+                        image_data['file_name'],
+                        image_data['file_size'],
+                        image_data['md5'],
+                        image_data['created_time'],
+                        image_data['modified_time'],
+                        existing[0]
+                    ))
             else:
                 # 插入新记录
                 cursor.execute('''
@@ -175,4 +180,30 @@ class DatabaseManager:
                 self.logger.info(f"已删除表: {table_name}")
         except Exception as e:
             self.logger.error(f"删除表失败: {str(e)}")
+            raise
+
+    def get_all_records(self) -> List[dict]:
+        """获取所有图片记录"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT id, file_path, file_name, file_size, md5, 
+                           created_time, modified_time 
+                    FROM images
+                ''')
+                records = []
+                for row in cursor.fetchall():
+                    records.append({
+                        'id': row[0],
+                        'file_path': row[1],
+                        'file_name': row[2],
+                        'file_size': row[3],
+                        'md5': row[4],
+                        'created_time': row[5],
+                        'modified_time': row[6]
+                    })
+                return records
+        except Exception as e:
+            self.logger.error(f"获取所有记录失败: {str(e)}")
             raise

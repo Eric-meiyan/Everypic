@@ -5,6 +5,8 @@ from utils.scan_thread import ScanThread
 from utils.image_scanner import ImageScanner
 from utils.logger import Logger
 from database.transaction_manager import TransactionManager
+from database.synchronizer import DatabaseSynchronizer
+from utils.config_manager import ConfigManager
 
 def create_menu_bar(window, menubar):
     # 文件菜单
@@ -52,6 +54,15 @@ def show_settings_dialog(parent):
         pass
 
 def start_scan(parent):
+    #对比库中的数据与图片目录中图片文件的差异
+    synchronizer = DatabaseSynchronizer()
+    #通过配置文件，得到图片目录
+    picture_dirs = ConfigManager().get_scan_directories()
+    synchronizer.sync_database(picture_dirs)
+    
+    
+
+
     # """开始扫描图片"""
     # logger = Logger()
     # scanner = ImageScanner()
@@ -75,21 +86,21 @@ def start_scan(parent):
     # except Exception as e:
     #     logger.error(f"启动扫描失败: {str(e)}") 
 
-    transaction_manager = TransactionManager()
-    try:
-        results = transaction_manager.search_similar_images("小朋友")
-        print("查询结果:")
-        # 先打印完整的结果对象，看看实际的数据结构
-        print("原始结果:", results)
-        for result in results:
-            # 打印每个结果的所有可用键
-            print("可用的键:", result.keys())
-            # 安全地访问数据
-            print(f"图片ID: {result.get('id', 'N/A')}")
-            print(f"文件路径: {result.get('file_path', 'N/A')}")
-            # 使用 get 方法避免 KeyError
-            print(f"描述: {result.get('description', 'N/A')}")
-    except Exception as e:
-        print(f"查询失败: {str(e)}")
-        import traceback
-        traceback.print_exc()
+    # transaction_manager = TransactionManager()
+    # try:
+    #     results = transaction_manager.search_similar_images("小朋友")
+    #     print("查询结果:")
+    #     # 先打印完整的结果对象，看看实际的数据结构
+    #     print("原始结果:", results)
+    #     for result in results:
+    #         # 打印每个结果的所有可用键
+    #         print("可用的键:", result.keys())
+    #         # 安全地访问数据
+    #         print(f"图片ID: {result.get('id', 'N/A')}")
+    #         print(f"文件路径: {result.get('file_path', 'N/A')}")
+    #         # 使用 get 方法避免 KeyError
+    #         print(f"描述: {result.get('description', 'N/A')}")
+    # except Exception as e:
+    #     print(f"查询失败: {str(e)}")
+    #     import traceback
+    #     traceback.print_exc()

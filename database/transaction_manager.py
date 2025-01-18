@@ -227,3 +227,15 @@ class TransactionManager:
             str: 生成的唯一ID
         """
         return self.vector_store.generate_image_id(file_path) 
+    
+    def get_all_records(self) -> List[dict]:
+        """获取数据库中所有图片记录
+        
+        Returns:
+            List[dict]: 所有图片记录的列表，每个记录包含完整的图片信息
+        """
+        try:
+            return self.db_manager.get_all_records()
+        except Exception as e:
+            self.logger.error(f"获取所有记录失败: {str(e)}")
+            raise 

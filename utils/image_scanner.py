@@ -10,7 +10,7 @@ from utils.logger import Logger
 
 class ImageScanner:
     def __init__(self):
-        self.db = TransactionManager()  # 使用事务管理器
+        self.transaction_manager = TransactionManager()  # 更清晰的变量命名
         self.supported_formats = ConfigManager().get_supported_formats()
         self.image_to_text = ImageToText()
         self.image_to_text.load_model()
@@ -72,8 +72,8 @@ class ImageScanner:
             }
             
             # 使用事务添加图片信息到数据库
-            with self.db.transaction():
-                image_id = self.db.add_image(image_data, description)
+            with self.transaction_manager.transaction():
+                image_id = self.transaction_manager.add_image(image_data, description)
                 self.logger.info(f"成功处理图片: {file_path}")
             
         except Exception as e:
