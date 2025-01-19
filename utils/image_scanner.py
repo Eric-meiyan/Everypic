@@ -64,6 +64,7 @@ class ImageScanner:
             description = self.get_image_description(file_path)
             end_time = time.time()
             print(f"获取图片 {file_name} 描述耗时: {end_time - start_time} 秒")
+            print(f"图片描述: {description}")
             
             # 构建图片数据
             image_data = {
