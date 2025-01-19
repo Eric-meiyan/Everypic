@@ -69,3 +69,17 @@ class VectorStore:
         except Exception as e:
             self.logger.error(f"搜索图片失败: {str(e)}")
             raise 
+        
+    def clear_database(self):
+        """清空向量数据库"""
+        try:
+            # 获取所有文档ID
+            ids = self.collection.get()["ids"]
+            if ids:  # 只在有数据时执行删除操作
+                self.collection.delete(ids=ids)
+                self.logger.info("向量数据库已清空")
+            else:
+                self.logger.info("向量数据库已经为空，无需清理")
+        except Exception as e:
+            self.logger.error(f"清空向量数据库失败: {str(e)}")
+            raise

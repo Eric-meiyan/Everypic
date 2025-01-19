@@ -77,8 +77,26 @@ def main():
         print("应用程序已关闭")
         # file_monitor.stop_monitoring()
 
-
+def clear_database():
+    #情况数据
+    transaction_manager = TransactionManager()
+    transaction_manager.clear_database()
+    print("数据已清空")
 
 if __name__ == "__main__":
     main() 
-    # onetest()
+    # onetest() 
+
+    # clear_database()
+
+    # import chromadb
+    # # import matplotlib.pyplot as plt
+    # # from sklearn.decomposition import PCA
+    # from database.vector_store import VectorStore
+
+    # #查看向量数据库
+    # vector_store = VectorStore()
+    # collection = vector_store.collection
+    # results = collection.get()
+    # print(results)
+

@@ -1,4 +1,5 @@
 import os
+import time
 import hashlib
 from datetime import datetime
 from PIL import Image
@@ -59,7 +60,10 @@ class ImageScanner:
             modified_time = datetime.fromtimestamp(file_stats.st_mtime)
             
             # 生成图片描述
+            start_time = time.time()
             description = self.get_image_description(file_path)
+            end_time = time.time()
+            print(f"获取图片 {file_name} 描述耗时: {end_time - start_time} 秒")
             
             # 构建图片数据
             image_data = {

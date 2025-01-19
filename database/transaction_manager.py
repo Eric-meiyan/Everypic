@@ -239,3 +239,9 @@ class TransactionManager:
         except Exception as e:
             self.logger.error(f"获取所有记录失败: {str(e)}")
             raise 
+        
+    def clear_database(self):
+        """清空数据库"""
+        self.db_manager.drop_table('images')
+        self.vector_store.clear_database()
+        self.logger.info("数据库已清空")
