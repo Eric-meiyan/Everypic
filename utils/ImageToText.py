@@ -1,9 +1,11 @@
 import requests
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
+# Salesforce/blip-image-captioning-base
+# Salesforce/blip-image-captioning-large
 
 class ImageToText:
-    def __init__(self, model_name="Salesforce/blip-image-captioning-large"):
+    def __init__(self, model_name="Salesforce/blip-image-captioning-base"):
         self.model_name = model_name
         self.processor = None
         self.model = None
@@ -16,39 +18,33 @@ class ImageToText:
             self.processor = BlipProcessor.from_pretrained(self.model_name)
             self.model = BlipForConditionalGeneration.from_pretrained(self.model_name)
     
-    def caption_image(self, image_path, conditional_text="用中文描述这张图片。请详细描述图片中的内容："):
-        """
-        Generate caption for an image in Chinese
+    def caption_image(self, image_path, conditional_text=None):
+        """生成图片描述
+        
         Args:
-            image_path: Path to the image file or URL
-            conditional_text: Chinese text prompt for conditional captioning
+            image_path: 图片文件路径
+            conditional_text: 条件文本（可选）
+            
         Returns:
-            str: Generated caption in Chinese
+            str: 生成的图片描述
         """
-        # Check if model is loaded
         if self.processor is None or self.model is None:
             raise RuntimeError("Model not loaded. Please call load_model() first.")
         
-        # Load image
-        if image_path.startswith(('http://', 'https://')):
-            raw_image = Image.open(requests.get(image_path, stream=True).raw).convert('RGB')
-        else:
-            raw_image = Image.open(image_path)
-        
+        raw_image = Image.open(image_path).convert('RGB')
         inputs = self.processor(raw_image, conditional_text, return_tensors="pt")
         
-        # 优化参数以提高中文生成质量
+        # 调整参数以适应 base 模型
         out = self.model.generate(
             **inputs,
-            max_length=150,          # 增加最大长度，因为中文描述通常需要更多token
-            min_length=30,           # 适当增加最小长度
-            num_beams=8,             # 增加束搜索数量以获得更好的生成结果
-            length_penalty=1.5,      # 增加长度惩罚以鼓励生成更长的描述
-            temperature=0.8,         # 略微增加随机性
-            repetition_penalty=1.5,  # 增加重复惩罚
-            do_sample=True,          # 启用采样以增加多样性
-            top_k=50,               # 限制词表大小
-            top_p=0.9               # 使用核采样
+            max_length=100,          # 减小最大长度，base模型不需要太长
+            num_beams=5,             # 减小束搜索数量，提高速度
+            length_penalty=1.0,      # 调整长度惩罚
+            temperature=0.7,         # 调整温度
+            repetition_penalty=1.2,  # 调整重复惩罚
+            do_sample=True,          # 保持采样以增加多样性
+            top_k=50,               # 保持词表限制
+            top_p=0.9               # 保持核采样参数
         )
         
         return self.processor.decode(out[0], skip_special_tokens=True)
