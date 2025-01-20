@@ -12,8 +12,14 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.logger = Logger()  # 初始化日志器
-        self.setWindowTitle("Everypic")
+        self.setWindowTitle(" Where's my picture")
         self.setMinimumSize(800, 600)
+        
+        # 设置程序图标
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
+                                'resources', 'icons', 'app.ico')
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
         
         # 创建中心部件
         central_widget = QWidget()
@@ -24,7 +30,7 @@ class MainWindow(QMainWindow):
         
         # 创建搜索框
         self.search_box = QLineEdit()
-        self.search_box.setPlaceholderText("输入关键词搜索图片...")
+        self.search_box.setPlaceholderText("输入关键词,回车，开始搜索图片...")
         # 将搜索框的回车事件连接到搜索函数
         self.search_box.returnPressed.connect(self.search_images)
         layout.addWidget(self.search_box)
