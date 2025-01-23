@@ -38,7 +38,7 @@ class ImageScanner:
                     try:
                         self.process_single_image(file_path)
                     except Exception as e:
-                        self.logger.error(f"处理文件 {file_path} 时出错: {str(e)}")
+                        self.logger.error(f"[ImageScanner.scan_directory] 处理文件 {file_path} 时出错: {str(e)}")
     
     def start_scan(self):
         """开始扫描系统中的图片"""
@@ -50,9 +50,16 @@ class ImageScanner:
             if os.path.exists(directory):
                 self.scan_directory(directory) 
     
-    def process_single_image(self, file_path):
+    def process_single_image(self, file_path: str):
         """处理单个图片文件"""
         try:
+            import psutil
+            process = psutil.Process()
+            memory_before = process.memory_info().rss / 1024 / 1024  # MB
+            
+            self.logger.info(f"[ImageScanner.process_single_image] 开始处理图片: {file_path}")
+            self.logger.info(f"[ImageScanner.process_single_image] 当前内存使用: {memory_before:.2f} MB")
+            
             # 获取文件信息
             file_stats = os.stat(file_path)
             file_name = os.path.basename(file_path)
@@ -79,8 +86,14 @@ class ImageScanner:
             # 使用事务添加图片信息到数据库
             with self.transaction_manager.transaction():
                 image_id = self.transaction_manager.add_image(image_data, description)
-                self.logger.info(f"成功处理图片: {file_path}")
+                self.logger.info(f"[ImageScanner.process_single_image] 成功处理图片: {file_path}")  
+            
+            memory_after = process.memory_info().rss / 1024 / 1024
+            self.logger.info(f"[ImageScanner.process_single_image] 处理后内存使用: {memory_after:.2f} MB")
+            self.logger.info(f"[ImageScanner.process_single_image] 内存增加: {memory_after - memory_before:.2f} MB")
             
         except Exception as e:
-            self.logger.error(f"处理文件 {file_path} 时出错: {str(e)}")
+            self.logger.error(f"[ImageScanner.process_single_image] 处理文件 {file_path} 时出错: {str(e)}")
+            import traceback
+            self.logger.error(f"[ImageScanner.process_single_image] 错误详情: {traceback.format_exc()}")
             raise 

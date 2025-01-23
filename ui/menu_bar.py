@@ -54,14 +54,29 @@ def show_settings_dialog(parent):
         pass
 
 def start_scan(parent):
-    #对比库中的数据与图片目录中图片文件的差异
-    synchronizer = DatabaseSynchronizer()
-    #通过配置文件，得到图片目录
-    picture_dirs = ConfigManager().get_scan_directories()
-    synchronizer.sync_database(picture_dirs)
-    
-    
-
+    """开始扫描图片"""
+    try:
+        # 对比库中的数据与图片目录中图片文件的差异
+        synchronizer = DatabaseSynchronizer()
+        # 通过配置文件，得到图片目录
+        picture_dirs = ConfigManager().get_scan_directories()
+        
+        Logger().info("[MenuBar.start_scan] 开始扫描图片目录...")
+        Logger().info(f"[MenuBar.start_scan] 待扫描目录: {picture_dirs}")
+        
+        try:
+            synchronizer.sync_database(picture_dirs)
+            Logger().info("[MenuBar.start_scan] 扫描完成")
+        except Exception as e:
+            Logger().error(f"[MenuBar.start_scan] 同步数据库时出错: {str(e)}")
+            import traceback
+            Logger().error(f"[MenuBar.start_scan] 错误详情: {traceback.format_exc()}")
+            raise
+            
+    except Exception as e:
+        Logger().error(f"[MenuBar.start_scan] 扫描过程出错: {str(e)}")
+        import traceback
+        Logger().error(f"[MenuBar.start_scan] 错误详情: {traceback.format_exc()}")
 
     # """开始扫描图片"""
     # logger = Logger()

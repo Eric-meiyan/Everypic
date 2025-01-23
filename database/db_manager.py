@@ -37,13 +37,13 @@ class DatabaseManager:
                 ''')
                 conn.commit()
         except Exception as e:
-            self.logger.error(f"创建数据库表失败: {str(e)}")
+            self.logger.error(f"[DatabaseManager.create_tables] 创建数据库表失败: {str(e)}")
             raise
 
     def begin_transaction(self):
         """开始事务"""
         if self.conn is not None:
-            self.logger.warning("已有未完成的事务")
+            self.logger.warning("[DatabaseManager.begin_transaction] 已有未完成的事务")
             return
         self.conn = sqlite3.connect(self.db_path)
         self.conn.isolation_level = 'IMMEDIATE'  # 设置隔离级别
@@ -51,10 +51,15 @@ class DatabaseManager:
     def commit_transaction(self):
         """提交事务"""
         if self.conn is None:
-            self.logger.error("没有活动的事务")
-            return
+            self.logger.error("[DatabaseManager.commit_transaction] 没有活动的事务")
+            return False
         try:
             self.conn.commit()
+            self.logger.info("[DatabaseManager.commit_transaction] 事务提交成功")
+            return True
+        except Exception as e:
+            self.logger.error(f"[DatabaseManager.commit_transaction] 提交事务失败: {str(e)}")
+            raise
         finally:
             self.conn.close()
             self.conn = None
@@ -62,10 +67,11 @@ class DatabaseManager:
     def rollback_transaction(self):
         """回滚事务"""
         if self.conn is None:
-            self.logger.error("没有活动的事务")
+            self.logger.error("[DatabaseManager.rollback_transaction] 没有活动的事务")
             return
         try:
             self.conn.rollback()
+            self.logger.info("[DatabaseManager.rollback_transaction] 事务已回滚")
         finally:
             self.conn.close()
             self.conn = None
@@ -77,6 +83,10 @@ class DatabaseManager:
                 self.begin_transaction()
             
             cursor = self.conn.cursor()
+            # 添加日志
+            self.logger.info(f"[DatabaseManager.add_image] 尝试添加/更新图片: {image_data['file_path']}")
+            self.logger.info(f"[DatabaseManager.add_image] 图片ID: {image_data['id']}")
+            
             cursor.execute('''
                 SELECT id, file_size, modified_time 
                 FROM images WHERE file_path = ?
@@ -84,6 +94,7 @@ class DatabaseManager:
             existing = cursor.fetchone()
             
             if existing:
+                self.logger.info(f"[DatabaseManager.add_image] 找到已存在记录: {existing}")
                 # 只有当文件大小或修改时间发生变化时才更新
                 if (existing[1] != image_data['file_size'] or 
                     existing[2] != image_data['modified_time']):
@@ -123,7 +134,7 @@ class DatabaseManager:
         except Exception as e:
             if not in_transaction:
                 self.rollback_transaction()
-            self.logger.error(f"添加图片记录失败: {str(e)}")
+            self.logger.error(f"[DatabaseManager.add_image] 添加图片记录失败: {str(e)}")
             raise
 
     def delete_image_by_path(self, file_path: str, in_transaction=False):
@@ -141,7 +152,7 @@ class DatabaseManager:
         except Exception as e:
             if not in_transaction:
                 self.rollback_transaction()
-            self.logger.error(f"删除图片记录失败: {str(e)}")
+            self.logger.error(f"[DatabaseManager.delete_image_by_path] 删除图片记录失败: {str(e)}")
             raise
 
     def get_image_by_id(self, image_id: str) -> dict:
@@ -167,7 +178,7 @@ class DatabaseManager:
                     }
                 return None
         except Exception as e:
-            self.logger.error(f"获取图片记录失败: {str(e)}")
+            self.logger.error(f"[DatabaseManager.get_image_by_id] 获取图片记录失败: {str(e)}")
             raise 
     
     def drop_table(self, table_name: str):
@@ -177,9 +188,9 @@ class DatabaseManager:
                 cursor = conn.cursor()
                 cursor.execute(f'DROP TABLE IF EXISTS {table_name}')
                 conn.commit()
-                self.logger.info(f"已删除表: {table_name}")
+                self.logger.info(f"[DatabaseManager.drop_table] 已删除表: {table_name}")
         except Exception as e:
-            self.logger.error(f"删除表失败: {str(e)}")
+            self.logger.error(f"[DatabaseManager.drop_table] 删除表失败: {str(e)}")
             raise
 
     def get_all_records(self) -> List[dict]:
@@ -203,7 +214,8 @@ class DatabaseManager:
                         'created_time': row[5],
                         'modified_time': row[6]
                     })
+                self.logger.info(f"[DatabaseManager.get_all_records] 获取记录数: {len(records)}")
                 return records
         except Exception as e:
-            self.logger.error(f"获取所有记录失败: {str(e)}")
+            self.logger.error(f"[DatabaseManager.get_all_records] 获取所有记录失败: {str(e)}")
             raise

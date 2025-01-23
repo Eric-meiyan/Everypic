@@ -23,9 +23,9 @@ class VectorStore:
                 name="image_descriptions",
                 metadata={"hnsw:space": "cosine"}  # 使用余弦相似度
             )
-            self.logger.info("向量数据库初始化成功")
+            self.logger.info("[VectorStore._init_store] 向量数据库初始化成功")
         except Exception as e:
-            self.logger.error(f"向量数据库初始化失败: {str(e)}")
+            self.logger.error(f"[VectorStore._init_store] 向量数据库初始化失败: {str(e)}")
             raise
     
     def generate_image_id(self, file_path: str) -> str:
@@ -42,10 +42,10 @@ class VectorStore:
                 metadatas=[{"image_id": image_id, "file_path": file_path}],
                 ids=[image_id]
             )
-            self.logger.info(f"添加图片描述到向量数据库: {file_path}")
+            self.logger.info(f"[VectorStore.add_image] 添加图片描述到向量数据库: {file_path}")
             return image_id
         except Exception as e:
-            self.logger.error(f"添加图片描述失败: {str(e)}")
+            self.logger.error(f"[VectorStore.add_image] 添加图片描述失败: {str(e)}")
             raise
     
     def delete_image(self, file_path: str):
@@ -53,9 +53,9 @@ class VectorStore:
         try:
             image_id = self.generate_image_id(file_path)
             self.collection.delete(ids=[image_id])
-            self.logger.info(f"从向量数据库删除图片描述: {file_path}")
+            self.logger.info(f"[VectorStore.delete_image] 从向量数据库删除图片: {file_path}")
         except Exception as e:
-            self.logger.error(f"删除图片描述失败: {str(e)}")
+            self.logger.error(f"[VectorStore.delete_image] 从向量数据库删除图片失败: {str(e)}")
             raise
     
     def search_images(self, query: str, limit: int = 10) -> list:
@@ -77,9 +77,9 @@ class VectorStore:
             ids = self.collection.get()["ids"]
             if ids:  # 只在有数据时执行删除操作
                 self.collection.delete(ids=ids)
-                self.logger.info("向量数据库已清空")
+                self.logger.info("[VectorStore.clear_database] 向量数据库已清空")
             else:
                 self.logger.info("向量数据库已经为空，无需清理")
         except Exception as e:
-            self.logger.error(f"清空向量数据库失败: {str(e)}")
+            self.logger.error(f"[VectorStore.clear_database] 清空向量数据库失败: {str(e)}")
             raise

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Set
 from contextlib import contextmanager
 from utils.logger import Logger
 from .db_manager import DatabaseManager
@@ -33,10 +33,9 @@ class TransactionManager:
         try:
             with self.transaction():
                 # SQLite表已经在DatabaseManager中创建
-                # 这里可以添加其他必要的初始化操作
-                self.logger.info("数据库初始化成功")
+                self.logger.info("[TransactionManager._init_database] 数据库初始化成功")
         except Exception as e:
-            self.logger.error(f"数据库初始化失败: {str(e)}")
+            self.logger.error(f"[TransactionManager._init_database] 数据库初始化失败: {str(e)}")
             raise
     
     def _record_operation(self, operation_type: str, **kwargs):
@@ -152,7 +151,7 @@ class TransactionManager:
             return image_id
             
         except Exception as e:
-            self.logger.error(f"添加图片失败: {str(e)}")
+            self.logger.error(f"[TransactionManager.add_image] 添加图片失败: {str(e)}")
             raise
     
     def delete_image(self, file_path: str):
@@ -175,7 +174,7 @@ class TransactionManager:
                 self.vector_store.delete_image(file_path)
                 
         except Exception as e:
-            self.logger.error(f"删除图片失败: {str(e)}")
+            self.logger.error(f"[TransactionManager.delete_image] 删除图片失败: {str(e)}")
             raise
     
     def get_image_by_id(self, image_id: str) -> Optional[dict]:
@@ -214,7 +213,7 @@ class TransactionManager:
             return images
             
         except Exception as e:
-            self.logger.error(f"搜索图片失败: {str(e)}")
+            self.logger.error(f"[TransactionManager.search_similar_images] 搜索图片失败: {str(e)}")
             raise 
     
     def generate_image_id(self, file_path: str) -> str:
@@ -244,4 +243,24 @@ class TransactionManager:
         """清空数据库"""
         self.db_manager.drop_table('images')
         self.vector_store.clear_database()
-        self.logger.info("数据库已清空")
+        self.logger.info("[TransactionManager.clear_database] 数据库已清空")
+
+    #从chromadb中获得所有记录的id
+    def get_all_records_ids(self) -> List[str]:
+        return self.vector_store.collection.get()["ids"]
+    
+    def delete_record_by_id(self, ids: Set[str]):
+        """从向量数据库中删除指定ID的记录
+        
+        Args:
+            ids: 要删除的记录ID集合
+            
+        Raises:
+            Exception: 当删除操作失败时抛出异常
+        """
+        try:
+            self.vector_store.collection.delete(ids=list(ids))
+            self.logger.info(f"[TransactionManager.delete_record_by_id] 成功从向量数据库删除记录: {ids}")
+        except Exception as e:
+            self.logger.error(f"[TransactionManager.delete_record_by_id] 从向量数据库删除记录失败: {str(e)}")
+            raise
