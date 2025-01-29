@@ -59,6 +59,8 @@ class TransactionManager:
                     self.vector_store.delete_image(
                         operation['params']['file_path']
                     )
+        except Exception as e:
+            self.logger.error(f"[TransactionManager._execute_pending_operations] 执行待处理操作时出错: {str(e)}")
         finally:
             self._pending_operations.clear()
     
@@ -264,3 +266,22 @@ class TransactionManager:
         except Exception as e:
             self.logger.error(f"[TransactionManager.delete_record_by_id] 从向量数据库删除记录失败: {str(e)}")
             raise
+            
+    def commit_transaction(self):   
+        """提交事务"""
+        self.db_manager.commit_transaction()
+        self.logger.info("[TransactionManager.commit_transaction] 事务提交成功")
+        
+    def rollback_transaction(self):
+        """回滚事务"""
+        self.db_manager.rollback_transaction()
+        self.logger.info("[TransactionManager.rollback_transaction] 事务回滚成功")
+
+    def _reset_transaction_state(self):
+        """重置事务状态"""
+        self._transaction_active = False
+        self._pending_operations.clear()
+        self._transaction_level = 0
+        if self.db_manager.conn is not None:
+            self.db_manager.rollback_transaction()
+

@@ -36,16 +36,33 @@ class VectorStore:
         """添加图片描述到向量数据库"""
         try:
             image_id = self.generate_image_id(file_path)
-            # ChromaDB会自动处理事务，如果发生异常会自动回滚
-            self.collection.add(
-                documents=[description],
-                metadatas=[{"image_id": image_id, "file_path": file_path}],
-                ids=[image_id]
-            )
-            self.logger.info(f"[VectorStore.add_image] 添加图片描述到向量数据库: {file_path}")
+            
+            count = self.collection.count()
+            print(f"[VectorStore.add_image] 当前记录数: {count}, 准备添加: {file_path}")
+
+            # 检查是否存在
+            result = self.collection.get(ids=[image_id])
+            if result["ids"]:
+                print(f"[VectorStore.add_image] ID已存在: {image_id}, 文件: {file_path}")
+                # 如果已存在，先删除
+                self.collection.delete(ids=[image_id])
+                print(f"[VectorStore.add_image] 已删除旧记录: {image_id}")
+            
+            try:
+                self.collection.add(
+                    documents=[description],
+                    metadatas=[{"image_id": image_id, "file_path": file_path}],
+                    ids=[image_id]
+                )
+                print(f"[VectorStore.add_image] 成功添加记录: {file_path}")
+            except Exception as e:
+                print(f"[VectorStore.add_image] 添加记录失败: {str(e)}")
+                raise
+            
             return image_id
+        
         except Exception as e:
-            self.logger.error(f"[VectorStore.add_image] 添加图片描述失败: {str(e)}")
+            self.logger.error(f"[VectorStore.add_image] 处理失败: {str(e)}, 文件: {file_path}")
             raise
     
     def delete_image(self, file_path: str):
@@ -83,3 +100,7 @@ class VectorStore:
         except Exception as e:
             self.logger.error(f"[VectorStore.clear_database] 清空向量数据库失败: {str(e)}")
             raise
+            
+    def count(self):
+        """统计向量数据库中的记录数"""
+        return self.collection.count()

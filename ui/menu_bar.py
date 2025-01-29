@@ -53,7 +53,11 @@ def show_settings_dialog(parent):
         # 设置已经在对话框的 accept() 方法中保存了
         pass
 
+
 def start_scan(parent):
+
+    
+
     """开始扫描图片"""
     try:
         # 对比库中的数据与图片目录中图片文件的差异
@@ -71,8 +75,7 @@ def start_scan(parent):
             Logger().error(f"[MenuBar.start_scan] 同步数据库时出错: {str(e)}")
             import traceback
             Logger().error(f"[MenuBar.start_scan] 错误详情: {traceback.format_exc()}")
-            raise
-            
+            raise            
     except Exception as e:
         Logger().error(f"[MenuBar.start_scan] 扫描过程出错: {str(e)}")
         import traceback
@@ -119,3 +122,12 @@ def start_scan(parent):
     #     print(f"查询失败: {str(e)}")
     #     import traceback
     #     traceback.print_exc()
+
+#写个测试函数，向chromadb中插入101条记录
+def test_add_data_to_chromadb():
+    #
+    transaction_manager = TransactionManager()
+    #利用transaction_manager.vector_store.add_image方法，向集合中插入101条记录  
+    for i in range(101):
+        transaction_manager.vector_store.add_image(f"test11_{i}.jpg", f"test11_{i} description")
+

@@ -7,6 +7,8 @@ from database.transaction_manager import TransactionManager
 from .ImageToText import ImageToText
 from .config_manager import ConfigManager
 from utils.logger import Logger
+import random
+import string
 
 
 class ImageScanner:
@@ -28,7 +30,9 @@ class ImageScanner:
     def get_image_description(self, image_path):
         """获取图片描述"""
         return self.image_to_text.caption_image(image_path)
-    
+        #生成一段随机的字符串，长度30个字符的英文，便于测试
+        # return ''.join(random.choices(string.ascii_letters + string.digits, k=30))
+
     def scan_directory(self, directory):
         """扫描指定目录下的所有图片"""
         for root, dirs, files in os.walk(directory):
